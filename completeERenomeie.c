@@ -23,24 +23,28 @@ typedef struct no {
 void inicializar(PONT* raiz);
 PONT criarNo(int valor);
 PONT inserir(PONT raiz, int valor);
+PONT buscarNo(PONT raiz, int valor, PONT *pai);
 PONT removerUmaOcorrencia(PONT raiz, int valor);
 PONT removerTodasOcorrencias(PONT raiz, int valor);
 PONT buscar(PONT raiz, int valor);
 void exibirInOrder(PONT raiz);
+void exibirPreOrder(PONT raiz);
+void exibirPosOrder(PONT raiz);
 int contarNos(PONT raiz);
 int contarTotalElementos(PONT raiz);
+int InOrderKEsimoMenor(PONT raiz, int k, int* contador);
 int kEsimoMenor(PONT raiz, int k);
 void imprimirIntervalo(PONT raiz, int min, int max);
-// (Opcional) PONT lowestCommonAncestor(PONT raiz, int val1, int val2);
+PONT lowestCommonAncestor(PONT raiz, int val1, int val2);
 
 //------------------------------------------------------------------------------
-// 1) Inicializar
+// 1) Inicializar ✔
 void inicializar(PONT* raiz) {
     *raiz = NULL;
 }
 
 //------------------------------------------------------------------------------
-// 2) Criar nó
+// 2) Criar nó ✔
 PONT criarNo(int valor) {
     PONT novo = (PONT) malloc(sizeof(NO));
     if(novo) {
@@ -53,96 +57,203 @@ PONT criarNo(int valor) {
 }
 
 //------------------------------------------------------------------------------
-// 3) Buscar
+// 3) Buscar ✔
 PONT buscar(PONT raiz, int valor) {
-    // COMPLETAR
-    // Retorna ponteiro para nó com chave == valor ou NULL se não existir.
-    // Usar a lógica de BST:
-    //  - se valor < raiz->chave => buscar à esquerda
-    //  - se valor > raiz->chave => buscar à direita
-    //  - se valor == raiz->chave => retorna raiz
-    return NULL; // provisório
-}
-
-//------------------------------------------------------------------------------
-// 4) Inserir
-PONT inserir(PONT raiz, int valor) {
-    // COMPLETAR
-    // Se raiz == NULL => cria nó
-    // Se valor < raiz->chave => raiz->esq = inserir(raiz->esq, valor)
-    // Se valor > raiz->chave => raiz->dir = inserir(raiz->dir, valor)
-    // Se valor == raiz->chave => incrementa raiz->contador
-    return raiz; // provisório
-}
-
-//------------------------------------------------------------------------------
-// 5) Remover UMA ocorrência
-PONT removerUmaOcorrencia(PONT raiz, int valor) {
-    // COMPLETAR
-    // 1) Buscar nó do valor:
-    //    - se não achar, não faz nada
-    // 2) se achar e contador>1 => decrementa
-    // 3) se contador==1 => remoção clássica de BST (casos 0,1,2 filhos)
-    return raiz; // provisório
-}
-
-//------------------------------------------------------------------------------
-// 6) Remover TODAS ocorrências
-PONT removerTodasOcorrencias(PONT raiz, int valor) {
-    // COMPLETAR
-    // 1) Buscar nó do valor
-    //    - se não achar, não faz nada
-    // 2) se achar => remove nó da BST (casos 0,1,2 filhos)
-    return raiz; // provisório
-}
-
-//------------------------------------------------------------------------------
-// 7) Exibir InOrder
-void exibirInOrder(PONT raiz) {
-    // COMPLETAR
-    // Percurso InOrder: esq -> (raiz->chave impresso contador vezes) -> dir
-}
-
-//------------------------------------------------------------------------------
-// 8) Contar nós distintos
-int contarNos(PONT raiz) {
-    // COMPLETAR
-    // Se raiz==NULL => 0
-    // Senao => 1 + contarNos(esq) + contarNos(dir)
-    return 0; // provisório
-}
-
-//------------------------------------------------------------------------------
-// 9) Contar total de elementos (somando contadores)
-int contarTotalElementos(PONT raiz) {
-    // COMPLETAR
-    // soma = raiz->contador + subárvores
-    return 0; // provisório
-}
-
-//------------------------------------------------------------------------------
-// 10) k-ésimo menor
-int kEsimoMenor(PONT raiz, int k) {
-    // COMPLETAR
-    // Deve considerar o contador de cada nó
-    // Retorne -1 se não existir
-    return -1; // provisório
-}
-
-//------------------------------------------------------------------------------
-// 11) Imprimir Intervalo [min, max]
-void imprimirIntervalo(PONT raiz, int min, int max) {
-    // COMPLETAR
-    // Imprimir todos (com contadores) que estejam no intervalo [min, max]
-}
-
-//------------------------------------------------------------------------------
-
-PONT lowestCommonAncestor(PONT raiz, int val1, int val2) {
-    // COMPLETAR
+    if (!raiz) return NULL;
+    if (valor == raiz->chave) return raiz;
+    if (valor < raiz->chave) return buscar(raiz->esq, valor);
+    if (valor > raiz->chave) return buscar(raiz->dir, valor);
     return NULL;
 }
 
+//------------------------------------------------------------------------------
+// 4) Inserir ✔
+PONT inserir(PONT raiz, int valor) {
+    if(!raiz) return criarNo(valor);
+    if(valor < raiz->chave) raiz->esq = inserir(raiz->esq, valor);
+    else if(valor > raiz->chave) raiz->dir = inserir(raiz->dir, valor);
+    else raiz->contador++;
+    return raiz;
+}
+
+//------------------------------------------------------------------------------
+// 5.1) Método de Busca Auxiliar ✔
+PONT buscarNo(PONT raiz, int valor, PONT *pai) {
+    PONT atual = raiz;
+    *pai = NULL;
+    while (atual) {
+        if (atual->chave == valor) return atual;
+        *pai = atual;
+        if (valor < atual->chave) atual = atual->esq;
+        else atual = atual->dir;
+    }
+    return NULL;
+}
+
+// 5.2) Remover UMA ocorrência ✔
+PONT removerUmaOcorrencia(PONT raiz, int valor){
+    PONT pai, no, p, q;
+    no = buscarNo(raiz, valor, &pai);
+    if(no == NULL) return raiz;
+    if (no->contador > 1){
+        no->contador--;
+        return raiz;
+    }
+    if(!no->esq || !no->dir){
+        if(!no->esq) q = no->dir;
+        else q = no->esq;
+    }
+    else {
+        p = no;
+        q = no->esq;
+        while(q->dir){
+            p = q;
+            q = q->dir;
+        }
+        if(p != no){
+            p->dir = q->esq;
+            q->esq = no->esq;
+        }
+        q->dir = no->dir;
+    }
+    if(!pai){
+        free(no);
+        return (q);
+    }
+    if (valor < pai->chave) pai->esq = q;
+    else pai->dir = q;
+    free(no);
+    return raiz;
+}
+
+//------------------------------------------------------------------------------
+// 6) Remover TODAS ocorrências ✔
+PONT removerTodasOcorrencias(PONT raiz, int valor) {
+    PONT pai, no, p, q;
+    no = buscarNo(raiz, valor, &pai);
+    if(no == NULL) return raiz;
+    if(!no->esq || !no->dir){
+        if(!no->esq) q = no->dir;
+        else q = no->esq;
+    }
+    else {
+        p = no;
+        q = no->esq;
+        while(q->dir){
+            p = q;
+            q = q->dir;
+        }
+        if(p != no){
+            p->dir = q->esq;
+            q->esq = no->esq;
+        }
+        q->dir = no->dir;
+    }
+    if(!pai){
+        free(no);
+        return (q);
+    }
+    if (valor < pai->chave) pai->esq = q;
+    else pai->dir = q;
+    free(no);
+    return raiz;
+}
+
+//------------------------------------------------------------------------------
+// 7) Exibir InOrder ✔
+void exibirInOrder(PONT raiz) {
+    if (raiz == NULL) return;
+    exibirInOrder(raiz->esq);
+    for(int i = raiz->contador; i > 0; i--){
+        printf("%d ", raiz->chave);
+    }
+    exibirInOrder(raiz->dir);
+}
+
+//------------------------------------------------------------------------------
+// 8.1) Exibir PreOrder ✔
+void exibirPreOrder(PONT raiz){
+    if (raiz == NULL) return;
+    for(int i = raiz->contador; i > 0; i--){
+        printf("%d ", raiz->chave);
+    }
+    exibirPreOrder(raiz->esq);
+    exibirPreOrder(raiz->dir);
+}
+
+// 8.2) Exibir PosOrder ✔
+void exibirPosOrder(PONT raiz){
+    if (raiz == NULL) return;
+    exibirPosOrder(raiz->esq);
+    exibirPosOrder(raiz->dir);
+    for(int i = raiz->contador; i > 0; i--){
+        printf("%d ", raiz->chave);
+    }
+}
+
+//------------------------------------------------------------------------------
+// 9) Contar nós distintos ✔
+int contarNos(PONT raiz) {
+    if(!raiz) return 0;
+    return 1 + contarNos(raiz->esq) + contarNos(raiz->dir);
+}
+
+//------------------------------------------------------------------------------
+// 10) Contar total de elementos (somando contadores) ✔
+int contarTotalElementos(PONT raiz) {
+    if(!raiz) return 0;
+    return raiz->contador + contarTotalElementos(raiz->esq) + contarTotalElementos(raiz->dir);
+}
+
+//------------------------------------------------------------------------------
+// 11.1) Função auxiliar k-ésimo menor ✔
+int InOrderKEsimoMenor(PONT raiz, int k, int* contador){
+    if (!raiz) return -1;
+
+    int valor = InOrderKEsimoMenor(raiz->esq, k, contador);
+    if (valor != -1) return valor;
+
+    for(int i = raiz->contador; i > 0; i--){
+        (*contador)++;
+        if(*contador == k){
+            return raiz->chave;
+        }
+    }
+
+    valor = InOrderKEsimoMenor(raiz->dir, k, contador);
+    
+}
+
+// 11.2) k-ésimo menor ✔
+int kEsimoMenor(PONT raiz, int k) {
+    if(k > contarTotalElementos(raiz)) return -1;
+    int contador = 0;
+    return InOrderKEsimoMenor(raiz, k, &contador);
+}
+
+//------------------------------------------------------------------------------
+// 12) Imprimir Intervalo [min, max] ✔
+void imprimirIntervalo(PONT raiz, int min, int max) {
+    if(!raiz) return;
+    if(raiz->chave > min) imprimirIntervalo(raiz->esq, min, max);
+    if (raiz->chave >= min && raiz->chave <= max) {
+        for(int i = raiz->contador; i > 0; i--){
+            printf("%d ", raiz->chave);
+        }
+    }
+    if(raiz->chave < max) imprimirIntervalo(raiz->dir, min, max);
+}
+
+//------------------------------------------------------------------------------
+// 13) Lowest Common Ancestor - Ancestral comum mais prox das chaves val1 e val2 ✔
+PONT lowestCommonAncestor(PONT raiz, int val1, int val2) {
+    if (!buscar(raiz, val1)) return NULL;
+    if (!buscar(raiz, val2)) return NULL;
+    if (!raiz) return NULL;
+    if (val1 < raiz->chave && val2 < raiz->chave) return lowestCommonAncestor(raiz->esq, val1, val2);
+    if (val1 > raiz-> chave && val2 > raiz->chave) return lowestCommonAncestor(raiz->dir, val1, val2);
+    return raiz; 
+}
 
 //------------------------------------------------------------------------------
 // main() para testes com expectativas de resultado
@@ -177,13 +288,13 @@ int main() {
     // InOrder final esperado (antes de quaisquer remoções):
     //     "5 5 5 10 10 15 18"
     //
-    inserir(raiz, 10); 
-    inserir(raiz, 5);
-    inserir(raiz, 15);
-    inserir(raiz, 10); // repetido => contador(10)++
-    inserir(raiz, 5);  // repetido => contador(5)++
-    inserir(raiz, 5);  // repetido => contador(5)++
-    inserir(raiz, 18);
+    raiz = inserir(raiz, 10); 
+    raiz = inserir(raiz, 5);
+    raiz = inserir(raiz, 15);
+    raiz = inserir(raiz, 10); // repetido => contador(10)++
+    raiz = inserir(raiz, 5);  // repetido => contador(5)++
+    raiz = inserir(raiz, 5);  // repetido => contador(5)++
+    raiz = inserir(raiz, 18);
 
     printf("\n--- APÓS INSERIR (10,5,15,10,5,5,18) ---\n");
     printf("InOrder esperado: 5 5 5 10 10 15 18\n");
@@ -191,6 +302,17 @@ int main() {
     exibirInOrder(raiz); 
     printf("\n");
 
+    //EXTRAS inseridos pelo aluno (Alexandre Marchioli)
+    printf("\n--- EXTRA - PreOrder e PosOrder -> inserido pelo aluno (Alexandre Marchioli) ---\n");
+    printf("PreOrder esperado: 10 10 5 5 5 15 18\n");
+    printf("PreOrder obtido:   ");
+    exibirPreOrder(raiz); 
+    printf("\n\n");
+    printf("PosOrder esperado: 5 5 5 18 15 10 10\n");
+    printf("PosOrder obtido:   ");
+    exibirPosOrder(raiz); 
+    printf("\n");
+    
     // -------------------------------------------------------
     // 2) Busca por valores
     PONT node5 = buscar(raiz, 5);
@@ -210,7 +332,7 @@ int main() {
     // -------------------------------------------------------
     // 3) Remover UMA ocorrência 
     //    removerUmaOcorrencia(5) => contador(5) deve passar de 3 para 2
-    removerUmaOcorrencia(raiz, 5);
+    raiz = removerUmaOcorrencia(raiz, 5);
 
     printf("\n--- APÓS removerUmaOcorrencia(5) ---\n");
     printf("Esperado InOrder: 5 5 10 10 15 18\n");
@@ -226,7 +348,7 @@ int main() {
     // -------------------------------------------------------
     // 4) Remover TODAS ocorrências
     //    removerTodasOcorrencias(10) => remove nó com chave=10 por completo
-    removerTodasOcorrencias(raiz, 10);
+    raiz = removerTodasOcorrencias(raiz, 10);
 
     printf("\n--- APÓS removerTodasOcorrencias(10) ---\n");
     printf("Esperado InOrder: 5 5 15 18\n");
@@ -279,7 +401,7 @@ int main() {
     //         3(1)   15(1)
     //                /  \
     //              12(1) 18(1)
-    //                  \
+    //                    /       <-- CORREÇÃO, 16 é filho de 18, e não de 12.
     //                  16(1)
     inserir(raiz, 12);
     inserir(raiz, 16);
@@ -287,7 +409,7 @@ int main() {
 
     printf("\n--- Árvore após inserir(12,16,3) ---\n");
     printf("InOrder esperado: 3 5 5 12 15 16 18\n");
-    printf("Obtido:          ");
+    printf("Obtido:           ");
     exibirInOrder(raiz);
     printf("\n");
 
@@ -316,10 +438,14 @@ int main() {
         printf("LCA(3,12) => chave=%d (esperado=5)\n", nLCA->chave);
     }
 
+    ////////////////////  NOTA DO ALUNO : ALEXANDRE MARCHIOLI   ///////////////////////////
+    //ATENÇÃO: Resultado esperado 15 é incorreto, portanto, modifiquei o resultado esperado para 18! Segue abaixo a explicação, printada direto no código. Colocarei-a também no arquivo "readme.md".
     nLCA = lowestCommonAncestor(raiz, 16, 18);
     if(nLCA) {
-        printf("LCA(16,18) => chave=%d (esperado=15)\n", nLCA->chave);
+        printf("LCA(16,18) => chave=%d (esperado=18)\n", nLCA->chave);
     }
+    printf(">>>>> Nota do Aluno: O resultado esperado é 18. Anteriormente no código, estava como 15, mas isso é incorreto. Uma explicação sobre esse erro foi deixada no arquivo README.md.\n\n");
+
 
     nLCA = lowestCommonAncestor(raiz, 5, 18);
     if(nLCA) {
