@@ -61,10 +61,10 @@ No teste do `lowestCommonAncestor` (LCA) para os valores 16 e 18, o comentário 
 A explicação detalhada foi deixada no código e neste README para esclarecimento. Segue imagem de comparação de comentários:
 
 ### Comentário original
-![Nome da Imagem](imagens-readme/comentario_original.png)
+![Comentário Original do código. 12 é tratado erroneamente como pai de 16.](imagens-readme/comentario_original.png)
 
 ### Comentário corrigido
-![Nome da Imagem](imagens-readme/comentario_corrigido.png)
+![Comentário Corrigido. 18 é corrigido como pai de 16.](imagens-readme/comentario_corrigido.png)
 
 ---
 
